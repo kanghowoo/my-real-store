@@ -56,9 +56,9 @@ http://localhost:8080/api/profiles/1
 &nbsp;
 
 ---
-### 3. 포인트 충전 (결제 승인 요청)
+### 3. 결제 승인 요청
 
-`POST /api/payments/approval`  
+`POST /api/payments/confirm`  
 &nbsp;
 
 body 입력값
@@ -69,7 +69,8 @@ body 입력값
   "paymentKey": "something_from_toss_SDK",
   "orderId": "order-****",
   "amount": 10000,
-  "provider": "toss"
+  "provider": "toss",
+  "memberCouponId": 2
 }
 ```
 
@@ -86,10 +87,16 @@ body 입력값
 
 ```json
 {
-  "paymentKey": "tviva20250709050714kh575",
-  "orderId": "ORDER-1752005233975",
-  "totalAmount": 1000,
-  "status": "DONE"
+  "code": 200,
+  "status": "OK",
+  "message": "OK",
+  "data": {
+    "paymentKey": "tviva2025072404055071Te8",
+    "orderId": "ORDER-1753297549510",
+    "totalAmount": 1000,
+    "status": "DONE",
+    "paymentDisApproved": false
+  }
 }
 ```
 
@@ -107,7 +114,23 @@ body 입력값
 &nbsp;
 
 ---
-### 4. 사용 가능한 쿠폰 조회 API
+### 4. 포인트 충전
+`POST /api/points/charge`  
+&nbsp;
+
+body 입력값
+```json
+{
+  "memberId": 1,
+  "memberCouponId": null,
+  "amount": 1000,
+  "reason": "충전"
+}
+```
+
+
+---
+### 5. 사용 가능한 쿠폰 조회 API
 
 `GET /api/member-coupons/{memberId}/available`
 
