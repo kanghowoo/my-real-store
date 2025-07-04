@@ -131,7 +131,11 @@ class ProfileRepositoryTest {
     }
 
     private Profile saveProfile(String name, int viewCount) {
-        Profile profile = new Profile(name, viewCount);
+        Profile profile = Profile.builder()
+                .name(name)
+                .viewCount(viewCount)
+                .build();
+
         return profileRepository.save(profile);
     }
 

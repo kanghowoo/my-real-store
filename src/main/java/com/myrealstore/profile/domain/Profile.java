@@ -8,15 +8,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Getter
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Profile extends BaseEntity {
 
+    public static final int DEFAULT_VIEW_COUNT = 0;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,10 +29,11 @@ public class Profile extends BaseEntity {
     @Column(name = "view_count", nullable = false)
     private int viewCount;
 
-    @Builder
-    public Profile(String name, int viewCount) {
-        this.name = name;
-        this.viewCount = viewCount;
+    public static Profile create(String name) {
+        return Profile.builder()
+                .name(name)
+                .viewCount(DEFAULT_VIEW_COUNT)
+                .build();
     }
 
 }
