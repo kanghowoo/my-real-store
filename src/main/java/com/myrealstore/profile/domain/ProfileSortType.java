@@ -1,6 +1,6 @@
 package com.myrealstore.profile.domain;
 
-import static com.myrealstore.profile.domain.QProfile.*;
+import static com.myrealstore.profile.domain.QProfile.profile;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -11,19 +11,17 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum ProfileSortType {
-    NAME("name","이름순") {
+    NAME("name", "이름순") {
         @Override
         public OrderSpecifier<?> getOrderSpecifier() {
             return profile.name.asc();
         }
-    },
-    VIEW("view", "조회순") {
+    }, VIEW("view", "조회순") {
         @Override
         public OrderSpecifier<?> getOrderSpecifier() {
             return profile.viewCount.desc();
         }
-    },
-    NEWEST("newest", "최신순") {
+    }, NEWEST("newest", "최신순") {
         @Override
         public OrderSpecifier<?> getOrderSpecifier() {
             return profile.createdAt.desc();
@@ -36,9 +34,13 @@ public enum ProfileSortType {
     public abstract OrderSpecifier<?> getOrderSpecifier();
 
     public static Optional<ProfileSortType> from(String paramName) {
-        return Arrays.stream(ProfileSortType.values())
-              .filter(type -> type.paramName.equalsIgnoreCase(paramName.trim()))
-              .findFirst();
+        return Optional.ofNullable(paramName)
+                       .map(String::trim)
+                       .filter(s -> !s.isEmpty())
+                       .flatMap(trimmedParam -> Arrays.stream(ProfileSortType.values())
+                                                      .filter(type -> type.paramName.equalsIgnoreCase(
+                                                              trimmedParam))
+                                                      .findFirst());
     }
 
     public static ProfileSortType getDefault() {
