@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.myrealstore.profile.domain.ProfileSortType;
 import com.myrealstore.profile.repository.ProfileRepository;
+import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
 import com.myrealstore.profile.service.response.ProfileResponse;
 import com.querydsl.core.types.OrderSpecifier;
 
@@ -20,9 +21,9 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
-    public Page<ProfileResponse> getProfiles(int page, int size, String paramName) {
-        Pageable pageable = PageRequest.of(page, size);
-        ProfileSortType profileSortType = ProfileSortType.from(paramName)
+    public Page<ProfileResponse> getProfiles(ProfileSearchServiceRequest request) {
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        ProfileSortType profileSortType = ProfileSortType.from(request.getSort())
                                                          .orElse(ProfileSortType.getDefault());
         OrderSpecifier<?> orderSpecifier = profileSortType.getOrderSpecifier();
 

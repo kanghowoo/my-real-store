@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import com.myrealstore.profile.domain.Profile;
 import com.myrealstore.profile.domain.ProfileSortType;
 import com.myrealstore.profile.repository.ProfileRepository;
+import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
 import com.myrealstore.profile.service.response.ProfileResponse;
 import com.querydsl.core.types.OrderSpecifier;
 
@@ -53,9 +54,13 @@ class ProfileServiceTest {
 
         ArgumentCaptor<OrderSpecifier> orderSpecifierCaptor = ArgumentCaptor.forClass(OrderSpecifier.class);
 
+        ProfileSearchServiceRequest serviceRequest = ProfileSearchServiceRequest.builder()
+                                                                                .page(DEFAULT_PAGE_NUMBER)
+                                                                                .size(DEFAULT_PAGE_SIZE)
+                                                                                .sort(paramName)
+                                                                                .build();
         // when
-        Page<ProfileResponse> result = profileService.getProfiles(
-                DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE, paramName);
+        Page<ProfileResponse> result = profileService.getProfiles(serviceRequest);
 
         // then
         then(profileRepository).should()
@@ -88,9 +93,13 @@ class ProfileServiceTest {
 
         ArgumentCaptor<OrderSpecifier> orderSpecifierCaptor = ArgumentCaptor.forClass(OrderSpecifier.class);
 
+        ProfileSearchServiceRequest serviceRequest = ProfileSearchServiceRequest.builder()
+                                                                                .page(DEFAULT_PAGE_NUMBER)
+                                                                                .size(DEFAULT_PAGE_SIZE)
+                                                                                .sort(invalidParamName)
+                                                                                .build();
         // when
-        Page<ProfileResponse> result = profileService.getProfiles(
-                DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE, invalidParamName);
+        Page<ProfileResponse> result = profileService.getProfiles(serviceRequest);
 
         // then
         then(profileRepository).should()
