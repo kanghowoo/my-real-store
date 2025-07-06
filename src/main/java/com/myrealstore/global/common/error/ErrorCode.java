@@ -1,6 +1,7 @@
 package com.myrealstore.global.common.error;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import org.springframework.http.HttpStatus;
 
@@ -8,7 +9,8 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    INVALID_INPUT_VALUE("invalid input value", BAD_REQUEST)
+    INVALID_INPUT_VALUE("invalid input value", BAD_REQUEST),
+    ENTITY_NOT_FOUND("entity not found", NOT_FOUND)
     ;
 
     private final String message;

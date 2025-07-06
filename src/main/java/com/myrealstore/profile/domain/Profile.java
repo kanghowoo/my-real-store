@@ -36,4 +36,7 @@ public class Profile extends BaseEntity {
                 .build();
     }
 
+    public void increaseView() {
+        this.viewCount += 1;
+    }
 }

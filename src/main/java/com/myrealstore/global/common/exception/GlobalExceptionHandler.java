@@ -41,4 +41,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, ErrorCode.INVALID_INPUT_VALUE.getStatus());
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleEntityNotFoundException(
+            EntityNotFoundException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
 }

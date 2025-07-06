@@ -1,12 +1,14 @@
 package com.myrealstore.profile.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import com.myrealstore.global.common.exception.EntityNotFoundException;
 import com.myrealstore.profile.domain.Profile;
 import com.myrealstore.profile.domain.ProfileSortType;
 import com.myrealstore.profile.repository.ProfileRepository;
@@ -114,6 +117,40 @@ class ProfileServiceTest {
 
         assertThat(result.getNumber()).isEqualTo(DEFAULT_PAGE_NUMBER);
         assertThat(result.getSize()).isEqualTo(DEFAULT_PAGE_SIZE);
+    }
+
+    @DisplayName("존재하는 프로필 상세조회 시, 조회수 1 증가")
+    @Test
+    void getProfileAndIncreaseView() {
+        // given
+        Long profileId = 1L;
+        Profile profile = Profile.builder()
+                                 .id(profileId)
+                                 .name("홍길동")
+                                 .viewCount(1)
+                                 .build();
+
+        given(profileRepository.findById(profileId)).willReturn(Optional.of(profile));
+
+        // when
+        ProfileResponse response = profileService.getProfileAndIncreaseView(profileId);
+
+        // then
+        assertThat(response.getId()).isEqualTo(profileId);
+        assertThat(profile.getViewCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 프로필 ID 조회 시 예외 발생")
+    void getProfileAndIncreaseView_fail_notFound() {
+        // given
+        Long invalidId = 999L;
+        given(profileRepository.findById(invalidId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> profileService.getProfileAndIncreaseView(invalidId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("해당 프로필을 찾을 수 없습니다.");
     }
 
 }
