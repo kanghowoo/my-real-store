@@ -27,4 +27,12 @@ public class Member extends BaseEntity {
 
     @Column(name = "point", nullable = false)
     private int point = 0;
+
+    public void increasePoint(int amount) {
+        this.point += amount;
+    }
+
+    public void decreasePoint(int amount) {
+        this.point -= amount;
+    }
 }
