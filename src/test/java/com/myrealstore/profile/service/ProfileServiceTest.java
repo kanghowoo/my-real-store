@@ -3,141 +3,101 @@ package com.myrealstore.profile.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.myrealstore.global.common.exception.EntityNotFoundException;
 import com.myrealstore.profile.domain.Profile;
-import com.myrealstore.profile.domain.ProfileSortType;
 import com.myrealstore.profile.repository.ProfileRepository;
 import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
 import com.myrealstore.profile.service.response.ProfileResponse;
-import com.querydsl.core.types.OrderSpecifier;
 
 @ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@Transactional
 class ProfileServiceTest {
 
     public static final int DEFAULT_PAGE_NUMBER = 0;
     public static final int DEFAULT_PAGE_SIZE = 10;
-    @Mock
+
+    @Autowired
     ProfileRepository profileRepository;
 
-    @InjectMocks
+    @Autowired
     ProfileService profileService;
 
     @DisplayName("주어진 파라미터값 정렬 기준에 따라 프로필 목록 조회를 한다.")
     @Test
     void getProfilesWithValidParam() {
         // given
-        String paramName = "NAME";
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        Profile profile1 = profileRepository.save(Profile.create("이영희"));
+        Profile profile2 = profileRepository.save(Profile.create("김철수"));
 
-        Profile profile1 = Profile.create("김철수");
+        ProfileSearchServiceRequest request = ProfileSearchServiceRequest.builder()
+                                                                         .page(DEFAULT_PAGE_NUMBER)
+                                                                         .size(DEFAULT_PAGE_SIZE)
+                                                                         .sort("NAME")
+                                                                         .build();
 
-        Page<Profile> profilePage = new PageImpl<>(List.of(profile1), pageable, 1);
-
-        given(profileRepository.findProfilesWithSortType(any(Pageable.class), any(OrderSpecifier.class)))
-                .willReturn(profilePage);
-
-        ArgumentCaptor<OrderSpecifier> orderSpecifierCaptor = ArgumentCaptor.forClass(OrderSpecifier.class);
-
-        ProfileSearchServiceRequest serviceRequest = ProfileSearchServiceRequest.builder()
-                                                                                .page(DEFAULT_PAGE_NUMBER)
-                                                                                .size(DEFAULT_PAGE_SIZE)
-                                                                                .sort(paramName)
-                                                                                .build();
         // when
-        Page<ProfileResponse> result = profileService.getProfiles(serviceRequest);
+        Page<ProfileResponse> result = profileService.getProfiles(request);
 
         // then
-        then(profileRepository).should()
-                               .findProfilesWithSortType(any(Pageable.class), orderSpecifierCaptor.capture());
-        assertThat(orderSpecifierCaptor.getValue()).isEqualTo(ProfileSortType.NAME.getOrderSpecifier());
-
-        assertThat(result.getContent()).hasSize(1)
+        assertThat(result.getContent()).hasSize(2)
                                        .extracting(ProfileResponse::getName, ProfileResponse::getViewCount)
                                        .containsExactly(
-                                               tuple("김철수", 0)
+                                               tuple("김철수", 0),
+                                               tuple("이영희", 0)
                                        );
-
-        assertThat(result.getNumber()).isEqualTo(DEFAULT_PAGE_NUMBER);
-        assertThat(result.getSize()).isEqualTo(DEFAULT_PAGE_SIZE);
     }
 
     @DisplayName("유효하지 않은 정렬 파라미터로 프로필 목록 조회 시도에도 기본 정렬 기준(최신순)으로 프로필 목록 조회를 한다.")
     @Test
-    void getProfilesWithInValidParam() {
+    void getProfilesWithInValidParam() throws InterruptedException {
         // given
-        String invalidParamName = "INVALID_SORT_KEY"; // 유효하지 않은 파라미터
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        saveProfileWithDelay("김철수", 0);
+        saveProfileWithDelay("이영희", 1);
 
-        Profile profile = Profile.create("김철수");
+        ProfileSearchServiceRequest request = ProfileSearchServiceRequest.builder()
+                                                                         .page(DEFAULT_PAGE_NUMBER)
+                                                                         .size(DEFAULT_PAGE_SIZE)
+                                                                         .sort("INVALID_KEY")
+                                                                         .build();
 
-        Page<Profile> profilePage = new PageImpl<>(List.of(profile), pageable, 1);
-
-        given(profileRepository.findProfilesWithSortType(any(Pageable.class), any(OrderSpecifier.class)))
-                .willReturn(profilePage);
-
-        ArgumentCaptor<OrderSpecifier> orderSpecifierCaptor = ArgumentCaptor.forClass(OrderSpecifier.class);
-
-        ProfileSearchServiceRequest serviceRequest = ProfileSearchServiceRequest.builder()
-                                                                                .page(DEFAULT_PAGE_NUMBER)
-                                                                                .size(DEFAULT_PAGE_SIZE)
-                                                                                .sort(invalidParamName)
-                                                                                .build();
         // when
-        Page<ProfileResponse> result = profileService.getProfiles(serviceRequest);
+        Page<ProfileResponse> result = profileService.getProfiles(request);
 
         // then
-        then(profileRepository).should()
-                               .findProfilesWithSortType(any(Pageable.class), orderSpecifierCaptor.capture());
-        assertThat(orderSpecifierCaptor.getValue()).isEqualTo(ProfileSortType.getDefault().getOrderSpecifier());
-
-        assertThat(result.getContent()).hasSize(1)
+        assertThat(result.getContent()).hasSize(2)
                                        .extracting(ProfileResponse::getName, ProfileResponse::getViewCount)
                                        .containsExactly(
+                                               tuple("이영희", 1),
                                                tuple("김철수", 0)
                                        );
-
-        assertThat(result.getNumber()).isEqualTo(DEFAULT_PAGE_NUMBER);
-        assertThat(result.getSize()).isEqualTo(DEFAULT_PAGE_SIZE);
     }
 
     @DisplayName("존재하는 프로필 상세조회 시, 조회수 1 증가")
     @Test
     void getProfileAndIncreaseView() {
-        // given
-        Long profileId = 1L;
-        Profile profile = Profile.builder()
-                                 .id(profileId)
-                                 .name("홍길동")
-                                 .viewCount(1)
-                                 .build();
-
-        given(profileRepository.findById(profileId)).willReturn(Optional.of(profile));
+        Profile saved = saveProfile("홍길동", 0);
+        Long id = saved.getId();
 
         // when
-        ProfileResponse response = profileService.getProfileAndIncreaseView(profileId);
+        ProfileResponse response = profileService.getProfileAndIncreaseView(id);
 
         // then
-        assertThat(response.getId()).isEqualTo(profileId);
-        assertThat(profile.getViewCount()).isEqualTo(2);
+        assertThat(response.getId()).isEqualTo(id);
+        assertThat(profileRepository.findById(id).get().getViewCount()).isEqualTo(1);
     }
 
     @Test
@@ -145,12 +105,53 @@ class ProfileServiceTest {
     void getProfileAndIncreaseView_fail_notFound() {
         // given
         Long invalidId = 999L;
-        given(profileRepository.findById(invalidId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> profileService.getProfileAndIncreaseView(invalidId))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("해당 프로필을 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("상세 조회 시 조회수 증가 후 목록 조회 시 반영되어 조회된다.")
+    void increaseViewCountAndCheckInList() throws InterruptedException {
+        // given
+        Profile profile1 = saveProfileWithDelay("홍길동", 0);
+        Profile profile2 = saveProfileWithDelay("김철수", 0);
+
+        // when
+        profileService.getProfileAndIncreaseView(profile1.getId());
+
+        // then
+        ProfileSearchServiceRequest request = ProfileSearchServiceRequest.builder()
+                                                                         .page(0)
+                                                                         .size(10)
+                                                                         .sort("view")
+                                                                         .build();
+
+        Page<ProfileResponse> page = profileService.getProfiles(request);
+
+        List<ProfileResponse> profiles = page.getContent();
+
+        assertThat(profiles).hasSize(2);
+        assertThat(profiles.get(0).getId()).isEqualTo(profile1.getId());
+        assertThat(profiles.get(0).getViewCount()).isEqualTo(1);
+        assertThat(profiles.get(1).getId()).isEqualTo(profile2.getId());
+        assertThat(profiles.get(1).getViewCount()).isEqualTo(0);
+    }
+
+    private Profile saveProfile(String name, int viewCount) {
+        Profile profile = Profile.builder()
+                                 .name(name)
+                                 .viewCount(viewCount)
+                                 .build();
+
+        return profileRepository.save(profile);
+    }
+
+    private Profile saveProfileWithDelay(String name, int viewCount) throws InterruptedException {
+        TimeUnit.MILLISECONDS.sleep(10);
+        return saveProfile(name, viewCount);
     }
 
 }
