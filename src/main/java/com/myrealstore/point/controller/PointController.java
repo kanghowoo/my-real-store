@@ -26,4 +26,12 @@ public class PointController {
         pointService.chargePoint(request.toServiceRequest());
         return ApiResponse.ok("SUCCESS");
     }
+
+    @PostMapping("/use")
+    public ApiResponse<String> usePoint(
+            @RequestBody @Valid PointEventRequest request
+    ) {
+        pointService.usePoint(request.toServiceRequest());
+        return ApiResponse.ok("SUCCESS");
+    }
 }
