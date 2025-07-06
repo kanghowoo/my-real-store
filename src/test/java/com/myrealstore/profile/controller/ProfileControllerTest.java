@@ -128,7 +128,7 @@ class ProfileControllerTest {
         ProfileResponse response = ProfileResponse.builder()
                                                   .id(id)
                                                   .name("홍길동")
-                                                  .viewCount(0)
+                                                  .viewCount(5)
                                                   .createdAt(LocalDateTime.now())
                                                   .build();
 
@@ -138,9 +138,9 @@ class ProfileControllerTest {
         mockMvc.perform(get("/api/profiles/{id}", id))
                .andExpect(status().isOk())
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-               .andExpect(jsonPath("$.id").value(id))
-               .andExpect(jsonPath("$.name").value("홍길동"))
-               .andExpect(jsonPath("$.viewCount").value(5));
+               .andExpect(jsonPath("$.data.id").value(id))
+               .andExpect(jsonPath("$.data.name").value("홍길동"))
+               .andExpect(jsonPath("$.data.viewCount").value(5));
     }
 
     @Test
