@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,9 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.myrealstore.global.common.exception.EntityNotFoundException;
 import com.myrealstore.profile.service.ProfileService;
 import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
 import com.myrealstore.profile.service.response.ProfileResponse;
@@ -115,6 +118,45 @@ class ProfileControllerTest {
                .andExpect(status().isBadRequest()) // 400 Bad Request
                .andExpect(jsonPath("$.statusCode").value(400))
                .andExpect(jsonPath("$.message").value("페이지 크기는 1 이상이어야 합니다."));
+    }
+
+    @Test
+    @DisplayName("정상적인 ID로 프로필 상세 조회 시 200과 데이터를 반환한다.")
+    void getProfileById_success() throws Exception {
+        // given
+        Long id = 1L;
+        ProfileResponse response = ProfileResponse.builder()
+                                                  .id(id)
+                                                  .name("홍길동")
+                                                  .viewCount(0)
+                                                  .createdAt(LocalDateTime.now())
+                                                  .build();
+
+        given(profileService.getProfileAndIncreaseView(id)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/profiles/{id}", id))
+               .andExpect(status().isOk())
+               .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+               .andExpect(jsonPath("$.id").value(id))
+               .andExpect(jsonPath("$.name").value("홍길동"))
+               .andExpect(jsonPath("$.viewCount").value(5));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 ID 요청 시 404 응답")
+    void getProfileById_notFound() throws Exception {
+        // given
+        Long invalidId = 999L;
+
+        given(profileService.getProfileAndIncreaseView(invalidId))
+                .willThrow(new EntityNotFoundException("해당 프로필을 찾을 수 없습니다."));
+
+        // when & then
+        mockMvc.perform(get("/api/profiles/{id}", invalidId))
+               .andExpect(status().isNotFound())
+               .andExpect(jsonPath("$.message").value("entity not found"))
+               .andExpect(jsonPath("$.statusCode").value(404));
     }
 
 }

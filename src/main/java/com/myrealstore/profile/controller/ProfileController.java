@@ -3,6 +3,7 @@ package com.myrealstore.profile.controller;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,5 +28,12 @@ public class ProfileController {
 
         Page<ProfileResponse> profiles = profileService.getProfiles(request.toServiceRequest());
         return ApiResponse.ok(profiles);
+    }
+
+
+    @GetMapping("/{id}")
+    public ApiResponse<ProfileResponse> getProfile(@PathVariable Long id) {
+        ProfileResponse response = profileService.getProfileAndIncreaseView(id);
+        return ApiResponse.ok(response);
     }
 }

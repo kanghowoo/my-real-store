@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.myrealstore.global.common.exception.EntityNotFoundException;
+import com.myrealstore.profile.domain.Profile;
 import com.myrealstore.profile.domain.ProfileSortType;
 import com.myrealstore.profile.repository.ProfileRepository;
 import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
@@ -29,5 +31,15 @@ public class ProfileService {
 
         return profileRepository.findProfilesWithSortType(pageable, orderSpecifier)
                                 .map(ProfileResponse::of);
+    }
+
+    @Transactional
+    public ProfileResponse getProfileAndIncreaseView(Long profileId) {
+        Profile profile = profileRepository.findById(profileId)
+                                           .orElseThrow(
+                                                   () -> new EntityNotFoundException("해당 프로필을 찾을 수 없습니다.")
+                                           );
+        profile.increaseView();
+        return ProfileResponse.of(profile);
     }
 }
