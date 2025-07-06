@@ -14,6 +14,7 @@ import com.myrealstore.member.domain.Member;
 import com.myrealstore.member.repository.MemberRepository;
 import com.myrealstore.point.domain.Point;
 import com.myrealstore.point.repository.PointRepository;
+import com.myrealstore.point.service.request.PointEventServiceRequest;
 
 @SpringBootTest
 @Transactional
@@ -38,8 +39,13 @@ class PointServiceTest {
                                                     .point(0)
                                                     .build());
 
+        PointEventServiceRequest request = PointEventServiceRequest.builder()
+                                                                   .memberId(member.getId())
+                                                                   .amount(chargeAmount)
+                                                                   .reason("test")
+                                                                   .build();
         // when
-        pointService.chargePoint(member.getId(), chargeAmount);
+        pointService.chargePoint(request);
 
         // then
         Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
@@ -62,8 +68,14 @@ class PointServiceTest {
                                                     .point(initAmount)
                                                     .build());
 
+        PointEventServiceRequest request = PointEventServiceRequest.builder()
+                                                                   .memberId(member.getId())
+                                                                   .amount(useAmount)
+                                                                   .reason("test")
+                                                                   .build();
+
         // when
-        pointService.usePoint(member.getId(), useAmount);
+        pointService.usePoint(request);
 
         // then
         Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
