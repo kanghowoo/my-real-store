@@ -1,0 +1,15 @@
+<!-- src/main/resources/templates/payment/fail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>결제 실패</title>
+</head>
+<body>
+<h1>❌ 결제 실패</h1>
+<p>결제 도중 오류가 발생했습니다.</p>
+
+<p>에러 코드: <span th:text="${code}"></span></p>
+<p>에러 메시지: <span th:text="${message}"></span></p>
+</body>
+</html>

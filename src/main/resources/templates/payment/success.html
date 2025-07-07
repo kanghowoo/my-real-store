@@ -1,0 +1,16 @@
+<!-- src/main/resources/templates/payment/success.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>결제 성공</title>
+</head>
+<body>
+<h1>🎉 결제 성공!</h1>
+<p>결제가 성공적으로 처리되었습니다.</p>
+
+<p>결제키 (paymentKey): <span th:text="${paymentKey}"></span></p>
+<p>주문번호 (orderId): <span th:text="${orderId}"></span></p>
+<p>결제금액 (amount): <span th:text="${amount}"></span>원</p>
+</body>
+</html>
