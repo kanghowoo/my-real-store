@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 public class PointEventServiceRequest {
     private Long memberId;
-    int amount;
-    String reason = "";
+    private int amount;
+    private String reason = "";
 
     @Builder
     public PointEventServiceRequest(Long memberId, int amount, String reason) {
