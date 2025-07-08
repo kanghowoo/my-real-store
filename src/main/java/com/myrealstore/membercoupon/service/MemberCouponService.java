@@ -19,8 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberCouponService {
     private final MemberCouponRepository memberCouponRepository;
 
-    public List<MemberCouponResponse> getAvailableCoupons(Long memberId) {
-        LocalDateTime now = LocalDateTime.now();
+    public List<MemberCouponResponse> getAvailableCoupons(Long memberId, LocalDateTime now) {
         return memberCouponRepository.findAvailableCouponsByMemberId(memberId, now).stream()
                                      .map(MemberCouponResponse::of)
                                      .toList();
@@ -37,10 +36,16 @@ public class MemberCouponService {
     }
 
     @Transactional
-    public void useCoupon(Long memberCouponId) {
+    public MemberCouponResponse useCoupon(Long memberCouponId) {
         boolean success = memberCouponRepository.markCouponUsed(memberCouponId, LocalDateTime.now());
         if (!success) {
             throw new IllegalStateException("이미 사용된 쿠폰입니다.");
         }
+
+        MemberCoupon updatedCoupon = memberCouponRepository.findById(memberCouponId)
+                                                           .orElseThrow(() -> new EntityNotFoundException(
+                                                                   "쿠폰이 존재하지 않습니다."));
+
+        return MemberCouponResponse.of(updatedCoupon);
     }
 }
