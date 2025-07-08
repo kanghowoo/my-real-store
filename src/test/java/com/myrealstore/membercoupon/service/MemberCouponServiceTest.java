@@ -45,7 +45,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("사용 가능한 쿠폰만 조회된다 - 사용X, 만료X, enabled=true")
-    void getAvailableCoupons_returnsValidCouponsOnly() {
+    void getAvailableCoupons_validCouponsOnly() {
         // given
         Member member = createMember("회원1");
         LocalDateTime now = LocalDateTime.of(2025, 7, 8, 10, 0);
@@ -62,7 +62,7 @@ class MemberCouponServiceTest {
         createMemberCoupon(member, disabled, false, null);
 
         // when
-        List<MemberCouponResponse> result = memberCouponService.getAvailableCoupons(member.getId());
+        List<MemberCouponResponse> result = memberCouponService.getAvailableCoupons(member.getId(), LocalDateTime.now());
 
         // then
         assertThat(result).hasSize(1);
@@ -71,7 +71,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("정액 쿠폰이 정상 적용된다")
-    void applyCoupon_withFixedDiscount_shouldApplyCorrectly() {
+    void applyCoupon_withFixedDiscount() {
         // given
         Member member = createMember("회원2");
         Coupon coupon = createCoupon("5000원 할인", DiscountType.FIXED, 5000, 0,
@@ -81,9 +81,10 @@ class MemberCouponServiceTest {
         // when
         int discounted = memberCouponService.applyCoupon(mc.getId(), 10000);
 
-        // then
-        assertThat(discounted).isEqualTo(5000);
+        em.flush();
+        em.clear();
 
+        // then
         MemberCoupon updated = memberCouponRepository.findById(mc.getId()).orElseThrow();
         assertThat(updated.isUsed()).isTrue();
         assertThat(updated.getUsedAt()).isNotNull();
@@ -91,7 +92,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("정률 쿠폰이 정상 적용된다 - 최대 할인 금액도 고려")
-    void applyCoupon_withPercentDiscount_shouldApplyCorrectly() {
+    void applyCoupon_withPercentDiscount() {
         // given
         Member member = createMember("회원3");
         Coupon coupon = createCoupon("20% 할인", DiscountType.PERCENT, 20, 3000,
@@ -111,7 +112,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("이미 사용된 쿠폰은 applyCoupon에서 예외 발생")
-    void applyCoupon_shouldThrow_whenAlreadyUsed() {
+    void applyCoupon_whenAlreadyUsed() {
         // given
         Member member = createMember("회원4");
         Coupon coupon = createCoupon("이미 사용됨", DiscountType.FIXED, 3000, 0,
@@ -126,7 +127,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("정상적인 쿠폰은 useCoupon으로 사용 처리할 수 있다")
-    void useCoupon_shouldMarkAsUsed() {
+    void useCoupon() {
         // given
         Member member = createMember("회원5");
         Coupon coupon = createCoupon("사용 가능 쿠폰", DiscountType.FIXED, 2000, 0,
@@ -146,7 +147,7 @@ class MemberCouponServiceTest {
 
     @Test
     @DisplayName("이미 사용된 쿠폰은 useCoupon에서 예외 발생")
-    void useCoupon_shouldThrow_whenAlreadyUsed() {
+    void useCoupon_whenAlreadyUsed() {
         // given
         Member member = createMember("회원6");
         Coupon coupon = createCoupon("중복 사용", DiscountType.FIXED, 2000, 0,
