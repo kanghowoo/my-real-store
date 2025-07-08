@@ -62,7 +62,7 @@ class MemberCouponRepositoryTest {
         createMemberCoupon(member, disabledCoupon, false, null);
 
         // when
-        List<MemberCoupon> result = memberCouponRepository.findAvailableCoupons(member.getId(), now);
+        List<MemberCoupon> result = memberCouponRepository.findAvailableCouponsByMemberId(member.getId(), now);
 
         // then
         assertThat(result).hasSize(1);

@@ -17,7 +17,7 @@ public class MemberCouponRepositoryImpl implements MemberCouponRepositoryCustom 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MemberCoupon> findAvailableCoupons(Long memberId, LocalDateTime now) {
+    public List<MemberCoupon> findAvailableCouponsByMemberId(Long memberId, LocalDateTime now) {
         return queryFactory
                 .selectFrom(memberCoupon)
                 .join(memberCoupon.coupon, coupon).fetchJoin()
