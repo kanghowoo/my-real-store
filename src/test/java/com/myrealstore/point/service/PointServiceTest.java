@@ -1,6 +1,7 @@
 package com.myrealstore.point.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 
@@ -16,6 +17,9 @@ import com.myrealstore.point.domain.Point;
 import com.myrealstore.point.repository.PointRepository;
 import com.myrealstore.point.service.request.PointEventServiceRequest;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @SpringBootTest
 @Transactional
 class PointServiceTest {
@@ -28,6 +32,9 @@ class PointServiceTest {
 
     @Autowired
     PointRepository pointRepository;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @DisplayName("결제 금액을 기준으로 회원에게 포인트를 충전한다.")
     @Test
@@ -46,6 +53,8 @@ class PointServiceTest {
                                                                    .build();
         // when
         pointService.chargePoint(request);
+        em.flush();
+        em.clear();
 
         // then
         Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
@@ -76,6 +85,9 @@ class PointServiceTest {
 
         // when
         pointService.usePoint(request);
+        em.flush();
+        em.clear();
+
 
         // then
         Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
@@ -85,6 +97,27 @@ class PointServiceTest {
         assertThat(points).hasSize(1);
         assertThat(points.get(0).getAmount()).isEqualTo(useAmount);
         assertThat(points.get(0).getType().name()).isEqualTo("USE");
+    }
+
+    @Test
+    @DisplayName("포인트 부족 시 예외를 던진다")
+    void usePoint_whenInsufficientBalance() {
+        // given
+        Member member = memberRepository.save(Member.builder().name("회원3").point(1000).build());
+
+        PointEventServiceRequest request = PointEventServiceRequest.builder()
+                                                                   .memberId(member.getId())
+                                                                   .amount(2000)
+                                                                   .reason("포인트 부족 케이스")
+                                                                   .build();
+
+        // expect
+        assertThatThrownBy(() -> pointService.usePoint(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("포인트 사용 실패");
+
+        Member updated = memberRepository.findById(member.getId()).orElseThrow();
+        assertThat(updated.getPoint()).isEqualTo(1000);
     }
 
 }
