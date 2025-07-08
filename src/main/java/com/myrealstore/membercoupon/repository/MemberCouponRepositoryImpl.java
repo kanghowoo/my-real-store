@@ -1,12 +1,10 @@
 package com.myrealstore.membercoupon.repository;
 
 import static com.myrealstore.coupon.domain.QCoupon.coupon;
-import static com.myrealstore.member.domain.QMember.member;
 import static com.myrealstore.membercoupon.domain.QMemberCoupon.memberCoupon;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import com.myrealstore.membercoupon.domain.MemberCoupon;
 import com.querydsl.jpa.impl.JPAQueryFactory;
