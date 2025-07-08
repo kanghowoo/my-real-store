@@ -87,7 +87,7 @@ class MemberCouponControllerTest {
 
         given(memberCouponService.useCoupon(id)).willReturn(mockResponse);
 
-        mockMvc.perform(post("/api/member-coupons/{id}/use", id))
+        mockMvc.perform(post("/api/member-coupons/{memberCouponId}/use", id))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.data.memberCouponId").value(id))
                .andExpect(jsonPath("$.data.used").value(true));

@@ -33,7 +33,7 @@ public class MemberCouponController {
     }
 
     @PostMapping("/{memberCouponId}/use")
-    public ApiResponse<MemberCouponResponse> useCoupon(@PathVariable Long memberCouponId) {
+    public ApiResponse<MemberCouponResponse> useCoupon(@PathVariable("memberCouponId") Long memberCouponId) {
         MemberCouponResponse response = memberCouponService.useCoupon(memberCouponId);
         return ApiResponse.ok(response);
     }

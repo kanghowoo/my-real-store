@@ -32,7 +32,7 @@ public class ProfileController {
 
 
     @GetMapping("/{id}")
-    public ApiResponse<ProfileResponse> getProfile(@PathVariable Long id) {
+    public ApiResponse<ProfileResponse> getProfile(@PathVariable("id") Long id) {
         ProfileResponse response = profileService.getProfileAndIncreaseView(id);
         return ApiResponse.ok(response);
     }
