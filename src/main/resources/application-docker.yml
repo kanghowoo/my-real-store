@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mydatabase:3306/myrealstore
+    username: test
+    password: 1234
