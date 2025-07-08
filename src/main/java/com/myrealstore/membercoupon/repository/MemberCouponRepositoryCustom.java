@@ -6,7 +6,7 @@ import java.util.List;
 import com.myrealstore.membercoupon.domain.MemberCoupon;
 
 public interface MemberCouponRepositoryCustom {
-    List<MemberCoupon> findAvailableCoupons(Long memberId, LocalDateTime now);
+    List<MemberCoupon> findAvailableCouponsByMemberId(Long memberId, LocalDateTime now);
     boolean markCouponUsed(Long memberCouponId, LocalDateTime usedAt);
 
 }
