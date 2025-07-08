@@ -17,4 +17,8 @@ public class PaymentApprovalResponse {
         this.totalAmount = totalAmount;
         this.status = status;
     }
+
+    public boolean isPaymentDisApproved() {
+        return !"DONE".equalsIgnoreCase(status);
+    }
 }

@@ -26,14 +26,17 @@ public class PaymentApprovalRequest {
     @NotBlank(message = "결제 시스템 제공자는 필수입니다.")
     private String provider;
 
+    private Long memberCouponId;
+
     @Builder
     public PaymentApprovalRequest(Long memberId, String paymentKey, String orderId, int amount,
-                                  String provider) {
+                                  String provider, Long memberCouponId) {
         this.memberId = memberId;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
         this.amount = amount;
         this.provider = provider;
+        this.memberCouponId = memberCouponId;
     }
 
     public PaymentApprovalServiceRequest toServiceRequest() {
@@ -43,6 +46,7 @@ public class PaymentApprovalRequest {
                                             .orderId(orderId)
                                             .amount(amount)
                                             .provider(provider)
+                                            .memberCouponId(memberCouponId)
                                             .build();
     }
 }

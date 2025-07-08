@@ -11,15 +11,28 @@ public class PaymentApprovalServiceRequest {
     private final String orderId;
     private final int amount;
     private final String provider;
+    private final Long memberCouponId;
 
     @Builder
     public PaymentApprovalServiceRequest(Long memberId, String paymentKey, String orderId, int amount,
-                                         String provider) {
+                                         String provider, Long memberCouponId) {
         this.memberId = memberId;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
         this.amount = amount;
         this.provider = getLowerCase(provider);
+        this.memberCouponId = memberCouponId;
+    }
+
+    public PaymentApprovalServiceRequest withAmount(int newAmount) {
+        return PaymentApprovalServiceRequest.builder()
+                                            .memberId(this.memberId)
+                                            .amount(newAmount)
+                                            .provider(this.provider)
+                                            .orderId(this.orderId)
+                                            .paymentKey(this.paymentKey)
+                                            .memberCouponId(this.memberCouponId)
+                                            .build();
     }
 
     public PaymentCancelServiceRequest toPaymentCancelServiceRequest() {
@@ -27,6 +40,7 @@ public class PaymentApprovalServiceRequest {
                 .paymentKey(paymentKey)
                 .orderId(orderId)
                 .amount(amount)
+                .reason("충전 실패")
                 .build();
     }
 

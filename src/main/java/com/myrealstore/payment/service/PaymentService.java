@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.myrealstore.membercoupon.service.MemberCouponService;
 import com.myrealstore.payment.exception.PaymentProcessingException;
 import com.myrealstore.payment.exception.PointChargeException;
 import com.myrealstore.payment.client.PaymentClient;
@@ -24,28 +25,42 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentService {
     private final Map<String, PaymentClient> paymentClientMap;
     private final PointService pointService;
+    private final MemberCouponService memberCouponService;
+    private final PaymentRetryQueue paymentRetryQueue;
 
     public PaymentApprovalResponse requestApproval(PaymentApprovalServiceRequest approvalRequest) {
-        String provider = approvalRequest.getProvider();
-        PaymentClient client = paymentClientMap.get(provider);
+        PaymentClient client = getPaymentClient(approvalRequest.getProvider());
 
-        PaymentApprovalResponse paymentResponse = requestExternalPaymentApproval(approvalRequest);
+        int finalAmount = getFinalAmount(approvalRequest);
+
+        PaymentApprovalServiceRequest actualRequest = approvalRequest.withAmount(finalAmount);
+        PaymentApprovalResponse paymentResponse = requestExternalPaymentApproval(actualRequest);
 
         try {
-            chargePoint(approvalRequest);
+            chargePoint(actualRequest);
         } catch (PointChargeException e) {
             log.error("포인트 적립 실패, 결제 취소 시도");
             handlePointChargeFailure(client, approvalRequest.toPaymentCancelServiceRequest());
-            throw new PaymentProcessingException("결제 취소 시도 실패");
+            throw new PaymentProcessingException("포인트 충전 중 오류가 발생하여 결제를 취소했습니다.");
         } catch (Exception e) {
             handlePointChargeFailure(client, approvalRequest.toPaymentCancelServiceRequest());
-            throw new PaymentProcessingException("포인트 적립 중 예기치 못한 오류");
+            throw new PaymentProcessingException("포인트 충전 중 예기치 못한 오류");
         }
 
         return paymentResponse;
     }
 
-    protected void chargePoint(PaymentApprovalServiceRequest request) {
+    private int getFinalAmount(PaymentApprovalServiceRequest approvalRequest) {
+        int finalAmount = approvalRequest.getAmount();
+        Long couponId = approvalRequest.getMemberCouponId();
+
+        if (couponId != null) {
+            finalAmount = memberCouponService.applyCoupon(couponId, finalAmount);
+        }
+        return finalAmount;
+    }
+
+    private void chargePoint(PaymentApprovalServiceRequest request) {
         PointEventServiceRequest pointChargeRequest = PointEventServiceRequest.builder()
                                                                               .memberId(request.getMemberId())
                                                                               .amount(request.getAmount())
@@ -55,7 +70,9 @@ public class PaymentService {
         try {
             pointService.chargePoint(pointChargeRequest);
         } catch (Exception e) {
-            throw new PointChargeException("포인트 적립 실패");
+            if (e instanceof PointChargeException) {
+                throw (PointChargeException) e;
+            }
         }
     }
 
@@ -65,7 +82,7 @@ public class PaymentService {
         try {
             PaymentApprovalResponse response = client.requestPaymentApproval(request);
 
-            if (!isPaymentApproved(response)) {
+            if (response.isPaymentDisApproved()) {
                 throw new PaymentProcessingException("결제 승인 실패");
             }
 
@@ -73,7 +90,7 @@ public class PaymentService {
         } catch (PaymentProcessingException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("결제사 승인 요청 중 오류 발생", e);
+            throw new PaymentProcessingException("결제사 승인 요청 중 오류 발생");
         }
 
     }
@@ -85,11 +102,8 @@ public class PaymentService {
             log.info("결제 [{}] 환불 성공", cancelRequest.getPaymentKey());
         } catch (Exception refundError) {
             log.error("결제 환불 실패: {}",refundError.getMessage(), refundError);
+            paymentRetryQueue.retryPaymentCancel(cancelRequest, 60_000);
         }
-    }
-
-    private boolean isPaymentApproved(PaymentApprovalResponse response) {
-        return "DONE".equalsIgnoreCase(response.getStatus());
     }
 
     private PaymentClient getPaymentClient(String provider) {
