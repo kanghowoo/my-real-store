@@ -22,7 +22,9 @@ import com.myrealstore.profile.repository.ProfileRepository;
 import com.myrealstore.profile.service.request.ProfileSearchServiceRequest;
 import com.myrealstore.profile.service.response.ProfileResponse;
 
-@ExtendWith(MockitoExtension.class)
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @SpringBootTest
 @Transactional
 class ProfileServiceTest {
@@ -35,6 +37,9 @@ class ProfileServiceTest {
 
     @Autowired
     ProfileService profileService;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @DisplayName("주어진 파라미터값 정렬 기준에 따라 프로필 목록 조회를 한다.")
     @Test
@@ -94,6 +99,8 @@ class ProfileServiceTest {
 
         // when
         ProfileResponse response = profileService.getProfileAndIncreaseView(id);
+        em.flush();
+        em.clear();
 
         // then
         assertThat(response.getId()).isEqualTo(id);
@@ -121,6 +128,8 @@ class ProfileServiceTest {
 
         // when
         profileService.getProfileAndIncreaseView(profile1.getId());
+        em.flush();
+        em.clear();
 
         // then
         ProfileSearchServiceRequest request = ProfileSearchServiceRequest.builder()

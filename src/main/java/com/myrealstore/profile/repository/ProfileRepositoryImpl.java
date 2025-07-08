@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.myrealstore.global.common.exception.EntityNotFoundException;
 import com.myrealstore.profile.domain.Profile;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -39,5 +40,18 @@ public class ProfileRepositoryImpl implements ProfileRepositoryCustom {
         ).orElse(0L);
 
         return new PageImpl<>(profiles, pageable, count);
+    }
+
+    @Override
+    public void increaseViewCount(Long profileId) {
+        long updated = queryFactory
+                .update(profile)
+                .set(profile.viewCount, profile.viewCount.add(1))
+                .where(profile.id.eq(profileId))
+                .execute();
+
+        if (updated == 0) {
+            throw new EntityNotFoundException("해당 프로필을 찾을 수 없습니다.");
+        }
     }
 }

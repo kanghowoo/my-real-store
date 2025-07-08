@@ -8,4 +8,5 @@ import com.querydsl.core.types.OrderSpecifier;
 
 public interface ProfileRepositoryCustom {
     Page<Profile> findProfilesWithSortType(Pageable pageable, OrderSpecifier<?> orderSpecifier);
+    void increaseViewCount(Long profileId);
 }

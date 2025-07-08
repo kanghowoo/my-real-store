@@ -35,11 +35,13 @@ public class ProfileService {
 
     @Transactional
     public ProfileResponse getProfileAndIncreaseView(Long profileId) {
+        profileRepository.increaseViewCount(profileId);
+
         Profile profile = profileRepository.findById(profileId)
                                            .orElseThrow(
                                                    () -> new EntityNotFoundException("해당 프로필을 찾을 수 없습니다.")
                                            );
-        profile.increaseView();
+
         return ProfileResponse.of(profile);
     }
 }
