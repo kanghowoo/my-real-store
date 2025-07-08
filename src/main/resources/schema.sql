@@ -72,6 +72,9 @@ CREATE TABLE `member_coupon`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
+CREATE INDEX idx_member_coupon_available
+    ON member_coupon(member_id, used, updated_at, created_at);
+
 -- point 테이블
 CREATE TABLE `point`
 (

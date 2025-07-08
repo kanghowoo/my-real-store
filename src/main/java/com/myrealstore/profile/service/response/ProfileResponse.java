@@ -27,6 +27,7 @@ public class ProfileResponse {
                               .id(profile.getId())
                               .name(profile.getName())
                               .viewCount(profile.getViewCount())
+                              .createdAt(profile.getCreatedAt())
                               .build();
 
     }

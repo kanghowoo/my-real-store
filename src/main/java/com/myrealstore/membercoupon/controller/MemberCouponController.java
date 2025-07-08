@@ -23,9 +23,9 @@ public class MemberCouponController {
 
     private final MemberCouponService memberCouponService;
 
-    @GetMapping("/available")
+    @GetMapping("/{memberId}/available")
     public ApiResponse<List<MemberCouponResponse>> getAvailableCoupons(
-            @RequestParam("memberId") Long memberId
+            @PathVariable("memberId") Long memberId
     ) {
         List<MemberCouponResponse> coupons =
                 memberCouponService.getAvailableCoupons(memberId, LocalDateTime.now());
