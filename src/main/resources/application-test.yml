@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: myrealstore-server-test
+
+  sql:
+    init:
+      mode: never
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+payment:
+  toss:
+    base-url: https://api.tosspayments.com/v1
+    client-key: test_ck_KNbdOvk5rk5R5RxdPn4W2y3n07xlzm
+    secret-key: test_sk_4yKeq5bgrpLMAgv90blJrGX0lzW6
