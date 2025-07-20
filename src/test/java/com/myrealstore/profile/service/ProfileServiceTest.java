@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.myrealstore.global.common.exception.EntityNotFoundException;
@@ -27,6 +28,7 @@ import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 class ProfileServiceTest {
 
     public static final int DEFAULT_PAGE_NUMBER = 0;

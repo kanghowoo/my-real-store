@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.myrealstore.global.config.JpaAuditingConfig;
 import com.myrealstore.global.config.QuerydslConfig;
@@ -19,7 +20,7 @@ import com.myrealstore.point.domain.PointEventType;
 
 @DataJpaTest
 @Import({ QuerydslConfig.class, JpaAuditingConfig.class })
-@AutoConfigureTestDatabase(replace = Replace.NONE)
+@ActiveProfiles("test")
 class PointRepositoryTest {
 
     @Autowired
@@ -35,6 +36,7 @@ class PointRepositoryTest {
         Member member = Member.builder()
                               .name("홍길동")
                               .point(0)
+                              .version(0L)
                               .build();
         Member savedMember = memberRepository.save(member);
 
@@ -58,11 +60,12 @@ class PointRepositoryTest {
         Member member = Member.builder()
                               .name("홍길동")
                               .point(0)
+                              .version(0L)
                               .build();
-        memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
 
         int amount = 1_000;
-        Point pointCharge = Point.createUse(member, amount, "TEST");
+        Point pointCharge = Point.createUse(savedMember, amount, "TEST");
 
         // when
         Point saved = pointRepository.save(pointCharge);
@@ -71,7 +74,7 @@ class PointRepositoryTest {
         assertThat(saved).isNotNull();
         assertThat(saved.getAmount()).isEqualTo(amount);
         assertThat(saved.getType()).isEqualTo(PointEventType.USE);
-        assertThat(saved.getMember().getId()).isEqualTo(member.getId());
+        assertThat(saved.getMember().getId()).isEqualTo(savedMember.getId());
     }
 
 }

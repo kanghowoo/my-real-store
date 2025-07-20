@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.myrealstore.global.config.JpaAuditingConfig;
 import com.myrealstore.global.config.QuerydslConfig;
@@ -23,7 +24,7 @@ import com.myrealstore.profile.domain.ProfileSortType;
 
 @DataJpaTest
 @Import({QuerydslConfig.class, JpaAuditingConfig.class})
-@AutoConfigureTestDatabase(replace = Replace.NONE)
+@ActiveProfiles("test")
 class ProfileRepositoryTest {
 
     @Autowired

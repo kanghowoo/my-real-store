@@ -14,7 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.myrealstore.point.controller.request.PointEventRequest;
+import com.myrealstore.point.controller.request.PointChargeRequest;
 import com.myrealstore.point.service.PointService;
 
 @WebMvcTest(controllers = PointController.class)
@@ -32,11 +32,11 @@ class PointControllerTest {
     @Test
     @DisplayName("포인트 충전 성공 요청")
     void chargePoint_success() throws Exception {
-        PointEventRequest request = PointEventRequest.builder()
-                                                     .memberId(1L)
-                                                     .amount(1000)
-                                                     .reason("test")
-                                                     .build();
+        PointChargeRequest request = PointChargeRequest.builder()
+                                                       .memberId(1L)
+                                                       .amount(1000)
+                                                       .reason("test")
+                                                       .build();
 
         mockMvc.perform(post("/api/points/charge")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -49,11 +49,11 @@ class PointControllerTest {
     @Test
     @DisplayName("포인트 사용 성공 요청")
     void usePoint_success() throws Exception {
-        PointEventRequest request = PointEventRequest.builder()
-                                                     .memberId(1L)
-                                                     .amount(1000)
-                                                     .reason("test")
-                                                     .build();
+        PointChargeRequest request = PointChargeRequest.builder()
+                                                       .memberId(1L)
+                                                       .amount(1000)
+                                                       .reason("test")
+                                                       .build();
 
         mockMvc.perform(post("/api/points/use")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -66,11 +66,11 @@ class PointControllerTest {
     @Test
     @DisplayName("유효성 실패: 충전 금액 0원")
     void chargePoint_fail_invalidAmount() throws Exception {
-        PointEventRequest request = PointEventRequest.builder()
-                                                     .memberId(1L)
-                                                     .amount(0)
-                                                     .reason("test")
-                                                     .build();
+        PointChargeRequest request = PointChargeRequest.builder()
+                                                       .memberId(1L)
+                                                       .amount(0)
+                                                       .reason("test")
+                                                       .build();
 
         mockMvc.perform(post("/api/points/charge")
                                 .contentType(MediaType.APPLICATION_JSON)
