@@ -24,7 +24,7 @@ class MemberCouponTest {
         MemberCoupon memberCoupon = createMemberCoupon(coupon, false);
 
         // when
-        int discount = memberCoupon.applyTo(10000);
+        int discount = memberCoupon.useFor(10000);
 
         // then
         assertThat(discount).isEqualTo(3000);
@@ -40,7 +40,7 @@ class MemberCouponTest {
         MemberCoupon memberCoupon = createMemberCoupon(coupon, true);
 
         // when & then
-        assertThatThrownBy(() -> memberCoupon.applyTo(10000))
+        assertThatThrownBy(() -> memberCoupon.useFor(10000))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 사용된 쿠폰입니다.");
     }
@@ -53,7 +53,7 @@ class MemberCouponTest {
         MemberCoupon memberCoupon = createMemberCoupon(coupon, false);
 
         // when & then
-        assertThatThrownBy(() -> memberCoupon.applyTo(10000))
+        assertThatThrownBy(() -> memberCoupon.useFor(10000))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("사용 불가능한 쿠폰입니다.");
     }
@@ -66,7 +66,7 @@ class MemberCouponTest {
         MemberCoupon memberCoupon = createMemberCoupon(coupon, false);
 
         // when & then
-        assertThatThrownBy(() -> memberCoupon.applyTo(10000))
+        assertThatThrownBy(() -> memberCoupon.useFor(10000))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("만료된 쿠폰입니다.");
     }

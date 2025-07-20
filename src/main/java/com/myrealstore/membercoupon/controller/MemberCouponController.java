@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.myrealstore.global.common.ApiResponse;
+import com.myrealstore.membercoupon.controller.request.ApplyCouponRequest;
 import com.myrealstore.membercoupon.service.MemberCouponService;
+import com.myrealstore.membercoupon.service.response.ApplyCouponResponse;
 import com.myrealstore.membercoupon.service.response.MemberCouponResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -32,12 +34,10 @@ public class MemberCouponController {
         return ApiResponse.ok(coupons);
     }
 
-    @PostMapping("/{memberCouponId}/use")
-    public ApiResponse<MemberCouponResponse> useCoupon(@PathVariable("memberCouponId") Long memberCouponId) {
-        MemberCouponResponse response = memberCouponService.useCoupon(memberCouponId);
+    @PostMapping("/apply")
+    public ApiResponse<ApplyCouponResponse> applyCoupon(@RequestBody ApplyCouponRequest request) {
+        ApplyCouponResponse response = memberCouponService.applyCoupon(request.toServiceRequest());
         return ApiResponse.ok(response);
     }
-
-
 
 }

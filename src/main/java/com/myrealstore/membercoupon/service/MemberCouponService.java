@@ -9,7 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.myrealstore.global.common.exception.EntityNotFoundException;
 import com.myrealstore.membercoupon.domain.MemberCoupon;
 import com.myrealstore.membercoupon.repository.MemberCouponRepository;
+import com.myrealstore.membercoupon.service.request.ApplyCouponServiceRequest;
+import com.myrealstore.membercoupon.service.request.UseCouponServiceRequest;
+import com.myrealstore.membercoupon.service.response.ApplyCouponResponse;
 import com.myrealstore.membercoupon.service.response.MemberCouponResponse;
+import com.myrealstore.membercoupon.service.response.UseCouponResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,27 +29,39 @@ public class MemberCouponService {
                                      .toList();
     }
 
-    public int applyCoupon(Long memberCouponId, int originalAmount) {
-        MemberCoupon memberCoupon = memberCouponRepository.findById(memberCouponId)
-                                                          .orElseThrow(
-                                                                  () -> new EntityNotFoundException(
-                                                                          "존재하지 않는 쿠폰입니다.")
-                                                          );
+    public ApplyCouponResponse applyCoupon(ApplyCouponServiceRequest request) {
+        MemberCoupon memberCoupon = memberCouponRepository.findByIdForUpdate(request.getMemberCouponId())
+                                                          .orElseThrow(() -> new EntityNotFoundException(
+                                                                  "쿠폰이 존재하지 않습니다."));
+        memberCoupon.verifyUsable(request.getMemberId());
 
-        return memberCoupon.applyTo(originalAmount);
+        int discountAmount = memberCoupon.applyFor(request.getOriginalAmount());
+        int finalAmount = request.getOriginalAmount() - discountAmount;
+
+        return ApplyCouponResponse.builder()
+                                  .memberCouponId(memberCoupon.getId())
+                                  .discountAmount(discountAmount)
+                                  .finalAmount(finalAmount)
+                                  .description(memberCoupon.getCouponName())
+                                  .build();
     }
 
     @Transactional
-    public MemberCouponResponse useCoupon(Long memberCouponId) {
-        boolean success = memberCouponRepository.markCouponUsed(memberCouponId, LocalDateTime.now());
-        if (!success) {
-            throw new IllegalStateException("이미 사용된 쿠폰입니다.");
-        }
+    public UseCouponResponse useCoupon(UseCouponServiceRequest request) {
+        MemberCoupon memberCoupon = memberCouponRepository.findByIdForUpdate(request.getMemberCouponId())
+                                                          .orElseThrow(() -> new EntityNotFoundException(
+                                                                  "쿠폰이 존재하지 않습니다."));
+        memberCoupon.verifyUsable(request.getMemberId());
 
-        MemberCoupon updatedCoupon = memberCouponRepository.findById(memberCouponId)
-                                                           .orElseThrow(() -> new EntityNotFoundException(
-                                                                   "쿠폰이 존재하지 않습니다."));
+        int discountAmount = memberCoupon.useFor(request.getOriginalAmount());
+        int finalAmount = request.getOriginalAmount() - discountAmount;
 
-        return MemberCouponResponse.of(updatedCoupon);
+        return UseCouponResponse.builder()
+                                .memberCouponId(memberCoupon.getId())
+                                .discountAmount(discountAmount)
+                                .finalAmount(finalAmount)
+                                .description(memberCoupon.getCouponName())
+                                .build();
     }
+
 }

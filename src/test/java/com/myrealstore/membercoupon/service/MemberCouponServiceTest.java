@@ -19,7 +19,11 @@ import com.myrealstore.member.domain.Member;
 import com.myrealstore.member.repository.MemberRepository;
 import com.myrealstore.membercoupon.domain.MemberCoupon;
 import com.myrealstore.membercoupon.repository.MemberCouponRepository;
+import com.myrealstore.membercoupon.service.request.ApplyCouponServiceRequest;
+import com.myrealstore.membercoupon.service.request.UseCouponServiceRequest;
+import com.myrealstore.membercoupon.service.response.ApplyCouponResponse;
 import com.myrealstore.membercoupon.service.response.MemberCouponResponse;
+import com.myrealstore.membercoupon.service.response.UseCouponResponse;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -48,7 +52,7 @@ class MemberCouponServiceTest {
     void getAvailableCoupons_validCouponsOnly() {
         // given
         Member member = createMember("회원1");
-        LocalDateTime now = LocalDateTime.of(2025, 7, 8, 10, 0);
+        LocalDateTime now = LocalDateTime.now();
 
         Coupon valid =
                 createCoupon("정상 쿠폰", DiscountType.FIXED, 3000, 0, now.plusDays(1), true);
@@ -70,44 +74,65 @@ class MemberCouponServiceTest {
     }
 
     @Test
-    @DisplayName("정액 쿠폰이 정상 적용된다")
+    @DisplayName("정액 쿠폰이 정상 적용된다(사용X)")
     void applyCoupon_withFixedDiscount() {
         // given
         Member member = createMember("회원2");
         Coupon coupon = createCoupon("5000원 할인", DiscountType.FIXED, 5000, 0,
                                      LocalDateTime.now().plusDays(1), true);
-        MemberCoupon mc = createMemberCoupon(member, coupon, false, null);
+        MemberCoupon memberCoupon = createMemberCoupon(member, coupon, false, null);
+
+        ApplyCouponServiceRequest request = ApplyCouponServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .memberCouponId(memberCoupon.getId())
+                                                                     .originalAmount(10000)
+                                                                     .build();
 
         // when
-        int discounted = memberCouponService.applyCoupon(mc.getId(), 10000);
+        ApplyCouponResponse response = memberCouponService.applyCoupon(request);
 
         em.flush();
         em.clear();
 
         // then
-        MemberCoupon updated = memberCouponRepository.findById(mc.getId()).orElseThrow();
-        assertThat(updated.isUsed()).isTrue();
-        assertThat(updated.getUsedAt()).isNotNull();
+        assertThat(response.getDiscountAmount()).isEqualTo(5000);
+        assertThat(response.getFinalAmount()).isEqualTo(5000);
+        assertThat(response.getMemberCouponId()).isEqualTo(memberCoupon.getId());
+
+        MemberCoupon notUpdated = memberCouponRepository.findById(memberCoupon.getId()).orElseThrow();
+        assertThat(notUpdated.isUsed()).isFalse();
+        assertThat(notUpdated.getUsedAt()).isNull();
     }
 
     @Test
-    @DisplayName("정률 쿠폰이 정상 적용된다 - 최대 할인 금액도 고려")
+    @DisplayName("정률 쿠폰이 정상 적용된다(사용X) - 최대 할인 금액도 고려")
     void applyCoupon_withPercentDiscount() {
         // given
         Member member = createMember("회원3");
         Coupon coupon = createCoupon("20% 할인", DiscountType.PERCENT, 20, 3000,
                                      LocalDateTime.now().plusDays(1), true);
-        MemberCoupon mc = createMemberCoupon(member, coupon, false, null);
+        MemberCoupon memberCoupon = createMemberCoupon(member, coupon, false, null);
+
+        ApplyCouponServiceRequest request = ApplyCouponServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .memberCouponId(memberCoupon.getId())
+                                                                     .originalAmount(20000)
+                                                                     .build();
 
         // when
-        int discounted = memberCouponService.applyCoupon(mc.getId(), 20000);
+        ApplyCouponResponse response = memberCouponService.applyCoupon(request);
+
+        em.flush();
+        em.clear();
 
         // then
-        assertThat(discounted).isEqualTo(3000);
+        assertThat(response.getDiscountAmount()).isEqualTo(3000);
+        assertThat(response.getFinalAmount()).isEqualTo(17000);
+        assertThat(response.getMemberCouponId()).isEqualTo(memberCoupon.getId());
 
-        MemberCoupon updated = memberCouponRepository.findById(mc.getId()).orElseThrow();
-        assertThat(updated.isUsed()).isTrue();
-        assertThat(updated.getUsedAt()).isNotNull();
+        MemberCoupon updated = memberCouponRepository.findById(memberCoupon.getId()).orElseThrow();
+        assertThat(updated.isUsed()).isFalse();
+        assertThat(updated.getUsedAt()).isNull();
     }
 
     @Test
@@ -117,10 +142,16 @@ class MemberCouponServiceTest {
         Member member = createMember("회원4");
         Coupon coupon = createCoupon("이미 사용됨", DiscountType.FIXED, 3000, 0,
                                      LocalDateTime.now().plusDays(1), true);
-        MemberCoupon mc = createMemberCoupon(member, coupon, true, LocalDateTime.now().minusDays(1));
+        MemberCoupon memberCoupon = createMemberCoupon(member, coupon, true, LocalDateTime.now().minusDays(1));
 
-        // expect
-        assertThatThrownBy(() -> memberCouponService.applyCoupon(mc.getId(), 10000))
+        ApplyCouponServiceRequest request = ApplyCouponServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .memberCouponId(memberCoupon.getId())
+                                                                     .originalAmount(10000)
+                                                                     .build();
+
+        // then
+        assertThatThrownBy(() -> memberCouponService.applyCoupon(request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 사용된 쿠폰");
     }
@@ -134,12 +165,21 @@ class MemberCouponServiceTest {
                                      LocalDateTime.now().plusDays(2), true);
         MemberCoupon memberCoupon = createMemberCoupon(member, coupon, false, null);
 
+        UseCouponServiceRequest request = UseCouponServiceRequest.builder()
+                                                                 .memberCouponId(memberCoupon.getId())
+                                                                 .memberId(member.getId())
+                                                                 .originalAmount(10000)
+                                                                 .build();
+
         // when
-        memberCouponService.useCoupon(memberCoupon.getId());
+        UseCouponResponse response = memberCouponService.useCoupon(request);
         em.flush();
         em.clear();
 
         // then
+        assertThat(response.getDiscountAmount()).isEqualTo(2000);
+        assertThat(response.getFinalAmount()).isEqualTo(8000);
+
         MemberCoupon updated = memberCouponRepository.findById(memberCoupon.getId()).orElseThrow();
         assertThat(updated.isUsed()).isTrue();
         assertThat(updated.getUsedAt()).isNotNull();
@@ -152,10 +192,16 @@ class MemberCouponServiceTest {
         Member member = createMember("회원6");
         Coupon coupon = createCoupon("중복 사용", DiscountType.FIXED, 2000, 0,
                                      LocalDateTime.now().plusDays(2), true);
-        MemberCoupon mc = createMemberCoupon(member, coupon, true, LocalDateTime.now().minusHours(1));
+        MemberCoupon memberCoupon = createMemberCoupon(member, coupon, true, LocalDateTime.now().minusHours(1));
 
-        // expect
-        assertThatThrownBy(() -> memberCouponService.useCoupon(mc.getId()))
+        UseCouponServiceRequest request = UseCouponServiceRequest.builder()
+                                                                 .memberCouponId(memberCoupon.getId())
+                                                                 .memberId(member.getId())
+                                                                 .originalAmount(10000)
+                                                                 .build();
+
+        // then
+        assertThatThrownBy(() -> memberCouponService.useCoupon(request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 사용된 쿠폰");
     }
