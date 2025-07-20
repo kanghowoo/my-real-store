@@ -1,6 +1,6 @@
 package com.myrealstore.payment.controller.request;
 
-import com.myrealstore.payment.service.request.PaymentApprovalServiceRequest;
+import com.myrealstore.payment.service.request.PaymentConfirmServiceRequest;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PaymentApprovalRequest {
+public class PaymentConfirmRequest {
 
     @NotNull(message = "회원 ID는 필수입니다.")
     private Long memberId;
@@ -24,7 +24,7 @@ public class PaymentApprovalRequest {
     @NotBlank(message = "주문 ID는 필수입니다.")
     private String orderId;
 
-    @Min(value = 1, message = "충전 금액은 1원 이상이어야 합니다.")
+    @Min(value = 1, message = "결제 금액은 1원 이상이어야 합니다.")
     private int amount;
 
     @NotBlank(message = "결제 시스템 제공자는 필수입니다.")
@@ -33,8 +33,8 @@ public class PaymentApprovalRequest {
     private Long memberCouponId;
 
     @Builder
-    public PaymentApprovalRequest(Long memberId, String paymentKey, String orderId, int amount,
-                                  String provider, Long memberCouponId) {
+    public PaymentConfirmRequest(Long memberId, String paymentKey, String orderId, int amount,
+                                 String provider, Long memberCouponId) {
         this.memberId = memberId;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
@@ -43,14 +43,14 @@ public class PaymentApprovalRequest {
         this.memberCouponId = memberCouponId;
     }
 
-    public PaymentApprovalServiceRequest toServiceRequest() {
-        return PaymentApprovalServiceRequest.builder()
-                                            .memberId(memberId)
-                                            .paymentKey(paymentKey)
-                                            .orderId(orderId)
-                                            .amount(amount)
-                                            .provider(provider)
-                                            .memberCouponId(memberCouponId)
-                                            .build();
+    public PaymentConfirmServiceRequest toServiceRequest() {
+        return PaymentConfirmServiceRequest.builder()
+                                           .memberId(memberId)
+                                           .paymentKey(paymentKey)
+                                           .orderId(orderId)
+                                           .amount(amount)
+                                           .provider(provider)
+                                           .memberCouponId(memberCouponId)
+                                           .build();
     }
 }

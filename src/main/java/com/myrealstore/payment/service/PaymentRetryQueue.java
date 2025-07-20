@@ -1,7 +1,7 @@
 package com.myrealstore.payment.service;
 
-import com.myrealstore.payment.service.request.PaymentCancelServiceRequest;
+import com.myrealstore.payment.service.request.PaymentConfirmServiceRequest;
 
 public interface PaymentRetryQueue {
-    void retryPaymentCancel(PaymentCancelServiceRequest request, long delayInMillis);
+    void retryConfirmPayment(PaymentConfirmServiceRequest request, long delayInMillis);
 }

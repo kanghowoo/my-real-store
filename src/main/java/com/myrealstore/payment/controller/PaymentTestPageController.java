@@ -23,9 +23,9 @@ public class PaymentTestPageController {
     }
 
     @GetMapping("/success")
-    public String paymentSuccess(@RequestParam String paymentKey,
-                                 @RequestParam String orderId,
-                                 @RequestParam int amount,
+    public String paymentSuccess(@RequestParam(name = "paymentKey") String paymentKey,
+                                 @RequestParam(name = "orderId") String orderId,
+                                 @RequestParam(name = "amount") int amount,
                                  Model model) {
         model.addAttribute("paymentKey", paymentKey);
         model.addAttribute("orderId", orderId);

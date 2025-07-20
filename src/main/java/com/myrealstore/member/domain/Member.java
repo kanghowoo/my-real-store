@@ -11,7 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -34,7 +36,12 @@ public class Member extends BaseEntity {
     private Profile profile;
 
     @Column(name = "point", nullable = false)
+    @Builder.Default
     private int point = 0;
+
+    @Version
+    @Builder.Default
+    private Long version = 0L;
 
     public void increasePoint(int amount) {
         this.point += amount;

@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -35,6 +36,7 @@ public class MemberCoupon extends BaseEntity {
     private Coupon coupon;
 
     @Column(name = "used", nullable = false)
+    @Builder.Default
     private boolean used = false;
 
     private LocalDateTime usedAt;
