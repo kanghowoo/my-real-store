@@ -5,9 +5,8 @@ import static com.myrealstore.coupon.domain.DiscountType.PERCENT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -59,8 +57,7 @@ class MemberCouponControllerTest {
                 .willReturn(mockCoupons);
 
         // when & then
-        mockMvc.perform(get("/api/member-coupons/available")
-                                .param("memberId", memberId.toString())
+        mockMvc.perform(get("/api/member-coupons/{memberId}/available", memberId)
                                 .accept(APPLICATION_JSON))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.message").value("OK"))
@@ -68,31 +65,6 @@ class MemberCouponControllerTest {
                .andExpect(jsonPath("$.data[0].name").value("쿠폰1"))
                .andExpect(jsonPath("$.data[1].discountType").value("PERCENT"));
     }
-
-    @Test
-    @DisplayName("쿠폰 사용 API는 성공 시 MemberCouponResponse 를 반환한다")
-    void useCoupon_shouldReturnResponse() throws Exception {
-        Long id = 1L;
-        MemberCouponResponse mockResponse = MemberCouponResponse.builder()
-                                                                .memberCouponId(id)
-                                                                .couponId(10L)
-                                                                .name("테스트 쿠폰")
-                                                                .discountType(DiscountType.FIXED)
-                                                                .discountValue(3000)
-                                                                .maxAmount(0)
-                                                                .expiredAt(LocalDateTime.now().plusDays(1))
-                                                                .used(true)
-                                                                .usedAt(LocalDateTime.now())
-                                                                .build();
-
-        given(memberCouponService.useCoupon(id)).willReturn(mockResponse);
-
-        mockMvc.perform(post("/api/member-coupons/{memberCouponId}/use", id))
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.data.memberCouponId").value(id))
-               .andExpect(jsonPath("$.data.used").value(true));
-    }
-
 
     private Member createMember(String name) {
         return Member.builder().name(name).build();
@@ -117,7 +89,5 @@ class MemberCouponControllerTest {
                            .used(used)
                            .build();
     }
-
-
 
 }

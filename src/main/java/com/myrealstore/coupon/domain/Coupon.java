@@ -46,22 +46,22 @@ public class Coupon extends BaseEntity {
     private boolean enabled;
 
     public int calculateDiscount(int originalAmount) {
-        validateUsable();
+        verifyUsable();
         return discountType.calculate(originalAmount, discountValue, maxAmount);
     }
 
-    public void validateUsable() {
-        validateEnabled();
-        validateNotExpired();
+    public void verifyUsable() {
+        verifyEnabled();
+        verifyNotExpired();
     }
 
-    private void validateNotExpired() {
+    private void verifyNotExpired() {
         if (this.expiredAt.isBefore(LocalDateTime.now())) {
             throw new IllegalStateException("만료된 쿠폰입니다.");
         }
     }
 
-    private void validateEnabled() {
+    private void verifyEnabled() {
         if (!enabled) {
             throw new IllegalStateException("사용 불가능한 쿠폰입니다.");
         }

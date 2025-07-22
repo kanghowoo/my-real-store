@@ -39,22 +39,35 @@ public class MemberCoupon extends BaseEntity {
 
     private LocalDateTime usedAt;
 
-    public int applyTo(int originalAmount) {
-        validateAvailable();
-        updateUsedState();
+    public String getCouponName() {
+        return this.coupon.getName();
+    }
 
+    public int useFor(int originalAmount) {
+        markAsUsed();
         return this.coupon.calculateDiscount(originalAmount);
     }
 
-    private void validateAvailable() {
-        this.coupon.validateUsable();
+    public int applyFor(int originalAmount) {
+        return this.coupon.calculateDiscount(originalAmount);
+    }
+
+    public void verifyUsable(Long memberId) {
+        coupon.verifyUsable();
+        verifyOwnedBy(memberId);
 
         if (this.used) {
             throw new IllegalStateException("이미 사용된 쿠폰입니다.");
         }
     }
 
-    private void updateUsedState() {
+    private void verifyOwnedBy(Long memberId) {
+        if (!this.member.getId().equals(memberId)) {
+            throw new IllegalStateException("내 쿠폰만 사용할 수 있습니다.");
+        }
+    }
+
+    private void markAsUsed() {
         this.used = true;
         this.usedAt = LocalDateTime.now();
     }
