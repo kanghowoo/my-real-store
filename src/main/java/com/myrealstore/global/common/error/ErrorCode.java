@@ -16,7 +16,8 @@ public enum ErrorCode {
     POINT_CHARGE_FAILED("point charge request failed.", BAD_REQUEST),
     PAYMENT_PROCESSING_FAILED("payment event request failed.", BAD_REQUEST),
 
-    ALREADY_USED_COUPON("이미 사용된 쿠폰입니다.", CONFLICT);
+    ALREADY_USED_COUPON("이미 사용된 쿠폰입니다.", CONFLICT),
+    DUPLICATED_PAYMENT_REQUEST("중복 결제 요청 입니다.", CONFLICT);
 
     private final String message;
     private final HttpStatus status;

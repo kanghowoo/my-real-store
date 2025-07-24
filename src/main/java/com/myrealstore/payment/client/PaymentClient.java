@@ -1,11 +1,10 @@
 package com.myrealstore.payment.client;
 
-import com.myrealstore.payment.service.request.PaymentApprovalServiceRequest;
-import com.myrealstore.payment.service.request.PaymentCancelServiceRequest;
-import com.myrealstore.payment.service.response.PaymentApprovalResponse;
+import com.myrealstore.payment.service.request.PaymentConfirmServiceRequest;
+import com.myrealstore.payment.service.response.PaymentConfirmResponse;
 
 public interface PaymentClient {
-    PaymentApprovalResponse requestPaymentApproval(PaymentApprovalServiceRequest request);
-    void requestPaymentCancel(PaymentCancelServiceRequest request);
+    PaymentConfirmResponse requestConfirm(PaymentConfirmServiceRequest request);
 
+    PaymentConfirmResponse requestConfirmAlwaysReturnOk(PaymentConfirmServiceRequest request);
 }

@@ -1,19 +1,19 @@
 package com.myrealstore.point.service.request;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class PointEventServiceRequest {
+public class PointChargeServiceRequest {
     private Long memberId;
+    private Long memberCouponId;
     private int amount;
     private String reason = "";
 
     @Builder
-    public PointEventServiceRequest(Long memberId, int amount, String reason) {
+    public PointChargeServiceRequest(Long memberId, Long memberCouponId, int amount, String reason) {
         this.memberId = memberId;
+        this.memberCouponId = memberCouponId;
         this.amount = amount;
         this.reason = reason;
     }
