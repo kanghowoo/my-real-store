@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.myrealstore.coupon.domain.Coupon;
 import com.myrealstore.coupon.domain.DiscountType;
@@ -28,6 +29,7 @@ import jakarta.persistence.PersistenceContext;
 @DataJpaTest
 @Import({ QuerydslConfig.class, JpaAuditingConfig.class })
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@ActiveProfiles("test")
 class MemberCouponRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;

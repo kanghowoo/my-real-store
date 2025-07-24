@@ -7,11 +7,13 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.myrealstore.coupon.domain.Coupon;
 import com.myrealstore.coupon.domain.DiscountType;
 import com.myrealstore.member.domain.Member;
 
+@ActiveProfiles("test")
 class MemberCouponTest {
 
     private final LocalDateTime future = LocalDateTime.now().plusDays(2);
@@ -33,14 +35,14 @@ class MemberCouponTest {
     }
 
     @Test
-    @DisplayName("이미 사용된 쿠폰은 applyTo 시 예외 발생")
-    void applyTo_shouldFail_whenAlreadyUsed() {
+    @DisplayName("이미 사용된 쿠폰은 예외 발생")
+    void applyFor_shouldFail_whenAlreadyUsed() {
         // given
         Coupon coupon = createCoupon("정액 쿠폰", DiscountType.FIXED, 3000, 0, future, true);
         MemberCoupon memberCoupon = createMemberCoupon(coupon, true);
 
         // when & then
-        assertThatThrownBy(() -> memberCoupon.useFor(10000))
+        assertThatThrownBy(() -> memberCoupon.verifyUsable(memberCoupon.getMember().getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 사용된 쿠폰입니다.");
     }
@@ -62,7 +64,8 @@ class MemberCouponTest {
     @DisplayName("만료된 쿠폰은 applyTo 시 예외 발생")
     void applyTo_shouldFail_whenCouponExpired() {
         // given
-        Coupon coupon = createCoupon("만료 쿠폰", DiscountType.FIXED, 3000, 0, LocalDateTime.now().minusDays(1), true);
+        Coupon coupon = createCoupon("만료 쿠폰", DiscountType.FIXED, 3000, 0, LocalDateTime.now().minusDays(1),
+                                     true);
         MemberCoupon memberCoupon = createMemberCoupon(coupon, false);
 
         // when & then
@@ -72,7 +75,9 @@ class MemberCouponTest {
     }
 
     private Member createMember(String name) {
-        return Member.builder().name(name).build();
+        return Member.builder()
+                     .id(1L)
+                     .name(name).build();
     }
 
     private Coupon createCoupon(String name, DiscountType type, int discountValue, int maxAmount,

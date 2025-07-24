@@ -9,19 +9,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.myrealstore.member.domain.Member;
 import com.myrealstore.member.repository.MemberRepository;
 import com.myrealstore.point.domain.Point;
 import com.myrealstore.point.repository.PointRepository;
-import com.myrealstore.point.service.request.PointEventServiceRequest;
+import com.myrealstore.point.service.request.PointChargeServiceRequest;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 class PointServiceTest {
 
     @Autowired
@@ -46,11 +48,12 @@ class PointServiceTest {
                                                     .point(0)
                                                     .build());
 
-        PointEventServiceRequest request = PointEventServiceRequest.builder()
-                                                                   .memberId(member.getId())
-                                                                   .amount(chargeAmount)
-                                                                   .reason("test")
-                                                                   .build();
+        PointChargeServiceRequest request = PointChargeServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .memberCouponId(null)
+                                                                     .amount(chargeAmount)
+                                                                     .reason("test")
+                                                                     .build();
         // when
         pointService.chargePoint(request);
         em.flush();
@@ -77,17 +80,16 @@ class PointServiceTest {
                                                     .point(initAmount)
                                                     .build());
 
-        PointEventServiceRequest request = PointEventServiceRequest.builder()
-                                                                   .memberId(member.getId())
-                                                                   .amount(useAmount)
-                                                                   .reason("test")
-                                                                   .build();
+        PointChargeServiceRequest request = PointChargeServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .amount(useAmount)
+                                                                     .reason("test")
+                                                                     .build();
 
         // when
         pointService.usePoint(request);
         em.flush();
         em.clear();
-
 
         // then
         Member updatedMember = memberRepository.findById(member.getId()).orElseThrow();
@@ -105,11 +107,11 @@ class PointServiceTest {
         // given
         Member member = memberRepository.save(Member.builder().name("회원3").point(1000).build());
 
-        PointEventServiceRequest request = PointEventServiceRequest.builder()
-                                                                   .memberId(member.getId())
-                                                                   .amount(2000)
-                                                                   .reason("포인트 부족 케이스")
-                                                                   .build();
+        PointChargeServiceRequest request = PointChargeServiceRequest.builder()
+                                                                     .memberId(member.getId())
+                                                                     .amount(2000)
+                                                                     .reason("포인트 부족 케이스")
+                                                                     .build();
 
         // expect
         assertThatThrownBy(() -> pointService.usePoint(request))
